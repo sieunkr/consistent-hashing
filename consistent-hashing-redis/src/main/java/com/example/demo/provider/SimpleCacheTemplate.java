@@ -23,26 +23,28 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SimpleCacheTemplate implements CacheTemplate<Person> {
 
+    //중요!!
+    private final Map<String, ReactiveRedisTemplate<String, Person>>
+            reactiveRedisTemplateMap;
+
     private Map<Integer, CacheRepository> nodeMap = new HashMap<>();
     private static int BUCKETS_SIZE = 1024;
     private String firstNode;
     private List<String> virtualNodes;
 
-    private final Map<String, ReactiveRedisTemplate<String, Person>> reactiveRedisTemplateMap;
-
     @PostConstruct
     public void init(){
-        
-        virtualNodes = Arrays.asList(
-                ///*
-                "reactiveRedisTemplateNodeA-01", "reactiveRedisTemplateNodeB-01", "reactiveRedisTemplateNodeC-01"
 
-                ,
+        virtualNodes = Arrays.asList(
+                /*
+                "reactiveRedisTemplateNodeA", "reactiveRedisTemplateNodeB", "reactiveRedisTemplateNodeC"
+                */
+                "reactiveRedisTemplateNodeA-01", "reactiveRedisTemplateNodeB-01", "reactiveRedisTemplateNodeC-01",
                 "reactiveRedisTemplateNodeA-02", "reactiveRedisTemplateNodeB-02", "reactiveRedisTemplateNodeC-02",
                 "reactiveRedisTemplateNodeA-03", "reactiveRedisTemplateNodeB-03", "reactiveRedisTemplateNodeC-03",
                 "reactiveRedisTemplateNodeA-04", "reactiveRedisTemplateNodeB-04", "reactiveRedisTemplateNodeC-04",
                 "reactiveRedisTemplateNodeA-05", "reactiveRedisTemplateNodeB-05", "reactiveRedisTemplateNodeC-05"
-                 //*/
+
         );
 
         //TODO: 서버 노드 버킷이 중복되는 경우에는 어떻게 처리되는가?
@@ -103,6 +105,7 @@ public class SimpleCacheTemplate implements CacheTemplate<Person> {
     }
 
     private ReactiveRedisTemplate<String, Person> getRedisTemplate(String key){
+        //return reactiveRedisTemplateMap.get(getNode(key));
         return reactiveRedisTemplateMap.get(getNode(key).split("-")[0]);
     }
 
@@ -110,6 +113,8 @@ public class SimpleCacheTemplate implements CacheTemplate<Person> {
 
         Assert.notNull(s, "string must not be null.");
 
-        return Hashing.consistentHash(Hashing.sha256().hashString(s, Charsets.UTF_8), BUCKETS_SIZE);
+        return Hashing.consistentHash(
+                Hashing.sha256().hashString(s, Charsets.UTF_8), BUCKETS_SIZE
+        );
     }
 }
