@@ -1,8 +1,6 @@
 package com.example.demo.provider;
 
-import com.example.demo.core.CacheRepository
-
-        ;
+import com.example.demo.core.CacheRepository;
 import com.example.demo.core.CacheTemplate;
 import com.example.demo.core.Person;
 import com.google.common.base.Charsets;
@@ -10,6 +8,8 @@ import com.google.common.hash.Hashing;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
@@ -53,22 +53,39 @@ public class SimpleCacheTemplate implements CacheTemplate<Person> {
 
     @Override
     public String getNode(String key){
-        //TODO: 성능개선, 알고리즘 개선 필요
+
+        Assert.notNull(key, "key must not be null.");
+
+        //TODO: 성능개선, 알고리즘 개선 필요, 리팩토링
         return nodeMap.keySet().stream()
                 .sorted()
                 .filter(k -> k >= getBucketByHashCode(key))
                 .findFirst()
-                .map(integer -> nodeMap.get(integer).getNodeName())
+                .map(i -> nodeMap.get(i).getNodeName())
                 .orElse(firstNode);
     }
 
     @Override
+    public Flux<Person> mGet(List<String> keyList) {
+
+        Assert.notEmpty(keyList, "key must not be empty.");
+
+        return null;
+    }
+
+    @Override
     public Mono<Person> get(String key) {
+
+        Assert.notNull(key, "key must not be null.");
+
         return getRedisTemplate(key).opsForValue().get(key);
     }
 
     @Override
     public Mono<Void> save(Person p) {
+
+        Assert.notNull(p, "person must not be null.");
+
         getRedisTemplate(p.getName()).opsForValue().set(p.getName(), p).subscribe();
         return Mono.empty();
     }
@@ -90,6 +107,9 @@ public class SimpleCacheTemplate implements CacheTemplate<Person> {
     }
 
     private int getBucketByHashCode(String s){
+
+        Assert.notNull(s, "string must not be null.");
+
         return Hashing.consistentHash(Hashing.sha256().hashString(s, Charsets.UTF_8), BUCKETS_SIZE);
     }
 }

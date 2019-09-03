@@ -19,9 +19,10 @@ public class CacheConfig {
     @Bean
     @Primary
     public ReactiveRedisConnectionFactory connectionFactoryNodeA() {
+        //기본 Connection Pool 사용
         return new LettuceConnectionFactory("192.168.19.136", 6379);
     }
-
+    
     @Bean
     public ReactiveRedisConnectionFactory connectionFactoryNodeB() {
         return new LettuceConnectionFactory("192.168.19.137", 6379);
