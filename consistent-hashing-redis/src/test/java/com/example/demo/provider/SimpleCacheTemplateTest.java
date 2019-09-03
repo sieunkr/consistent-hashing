@@ -12,11 +12,13 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class SimpleCacheTemplateTest {
+
     @Autowired
     private SimpleCacheTemplate simpleCacheTemplate;
 
     @Test
     public void 대량_데이터_저장_성능_테스트(){
+
         long start = System.currentTimeMillis();
 
         for(int i = 0; i < 10000; i++){

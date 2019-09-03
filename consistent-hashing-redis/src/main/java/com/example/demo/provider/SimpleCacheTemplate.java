@@ -1,11 +1,13 @@
 package com.example.demo.provider;
 
-import com.example.demo.core.CacheRepository;
+import com.example.demo.core.CacheRepository
+
+        ;
 import com.example.demo.core.CacheTemplate;
 import com.example.demo.core.Person;
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -18,32 +20,29 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class SimpleCacheTemplate implements CacheTemplate {
+@RequiredArgsConstructor
+public class SimpleCacheTemplate implements CacheTemplate<Person> {
 
     private Map<Integer, CacheRepository> nodeMap = new HashMap<>();
     private static int BUCKETS_SIZE = 1024;
     private String firstNode;
     private List<String> virtualNodes;
 
-    @Autowired
-    private Map<String, ReactiveRedisTemplate<String, Person>> reactiveRedisTemplateMap;
+    private final Map<String, ReactiveRedisTemplate<String, Person>> reactiveRedisTemplateMap;
 
     @PostConstruct
     public void init(){
-        /*
-        Arrays.asList("reactiveRedisTemplateNodeA", "reactiveRedisTemplateNodeB", "reactiveRedisTemplateNodeC")
-                .forEach(n -> nodeMap.put(getBucketByHashCode(n), new CacheRepository(n)));
-        */
-
+        
         virtualNodes = Arrays.asList(
+                ///*
                 "reactiveRedisTemplateNodeA-01", "reactiveRedisTemplateNodeB-01", "reactiveRedisTemplateNodeC-01"
-                /*
+
                 ,
                 "reactiveRedisTemplateNodeA-02", "reactiveRedisTemplateNodeB-02", "reactiveRedisTemplateNodeC-02",
                 "reactiveRedisTemplateNodeA-03", "reactiveRedisTemplateNodeB-03", "reactiveRedisTemplateNodeC-03",
                 "reactiveRedisTemplateNodeA-04", "reactiveRedisTemplateNodeB-04", "reactiveRedisTemplateNodeC-04",
                 "reactiveRedisTemplateNodeA-05", "reactiveRedisTemplateNodeB-05", "reactiveRedisTemplateNodeC-05"
-                 */
+                 //*/
         );
 
         //TODO: 서버 노드 버킷이 중복되는 경우에는 어떻게 처리되는가?
@@ -63,6 +62,19 @@ public class SimpleCacheTemplate implements CacheTemplate {
                 .orElse(firstNode);
     }
 
+    @Override
+    public Mono<Person> get(String key) {
+        return getRedisTemplate(key).opsForValue().get(key);
+    }
+
+    @Override
+    public Mono<Void> save(Person p) {
+        getRedisTemplate(p.getName()).opsForValue().set(p.getName(), p).subscribe();
+        return Mono.empty();
+    }
+
+
+
     public int getBucket(String key){
         return getBucketByHashCode(key);
     }
@@ -73,23 +85,7 @@ public class SimpleCacheTemplate implements CacheTemplate {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public Mono<Person> get(String key) {
-        //클라이언트에서 타겟 노드를 검사
-
-        return getRedisTemplate(key).opsForValue().get(key);
-        //return nodeMap.get(getInfo(key)).get(key);
-    }
-
-    @Override
-    public Mono<Void> save(Object o) {
-        Person p = (Person)o;
-        getRedisTemplate(p.getName()).opsForValue().set(p.getName(), p).subscribe();
-        return Mono.empty();
-    }
-
     private ReactiveRedisTemplate<String, Person> getRedisTemplate(String key){
-        //return reactiveRedisTemplateMap.get(getNode(key));
         return reactiveRedisTemplateMap.get(getNode(key).split("-")[0]);
     }
 
