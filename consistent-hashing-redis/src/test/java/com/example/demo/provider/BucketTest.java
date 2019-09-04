@@ -4,6 +4,9 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class BucketTest {
 
     @Test
@@ -25,6 +28,28 @@ public class BucketTest {
     }
 
 
+
+    @Test
+    public void 버킷_테스트_가상노드(){
+
+        List<String> virtualNodes = Arrays.asList(
+                //"reactiveRedisTemplateNodeA", "reactiveRedisTemplateNodeB", "reactiveRedisTemplateNodeC"
+                "reactiveRedisTemplateNodeA-01", "reactiveRedisTemplateNodeB-01", "reactiveRedisTemplateNodeC-01",
+                "reactiveRedisTemplateNodeA-02", "reactiveRedisTemplateNodeB-02", "reactiveRedisTemplateNodeC-02",
+                "reactiveRedisTemplateNodeA-03", "reactiveRedisTemplateNodeB-03", "reactiveRedisTemplateNodeC-03",
+                "reactiveRedisTemplateNodeA-04", "reactiveRedisTemplateNodeB-04", "reactiveRedisTemplateNodeC-04",
+                "reactiveRedisTemplateNodeA-05", "reactiveRedisTemplateNodeB-05", "reactiveRedisTemplateNodeC-05"
+        );
+
+        for (String r : virtualNodes) {
+            System.out.println("노드 " + r + " 의 버킷 번호는 : " + getBucket(r));
+        }
+    }
+
+    private int getBucket(String key){
+        return Hashing.consistentHash(
+                Hashing.sha256().hashString(key, Charsets.UTF_8), 1024);
+    }
 
     @Test
     public void 키_테스트(){
