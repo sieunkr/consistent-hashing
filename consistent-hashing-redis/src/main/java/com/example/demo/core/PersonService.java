@@ -11,13 +11,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PersonService {
 
-    private final CacheTemplate simpleCacheTemplate;
+    private final CacheTemplate<Person> simpleCacheTemplate;
 
     public Mono<Person> findByKey(String name){
         //TODO:Look Aside Pattern
         return simpleCacheTemplate.get(name);
     }
-
+    
     public Flux<Person> findByKeyList(List<String> keyList){
         //TODO:Look Aside Pattern
         return simpleCacheTemplate.mGet(keyList);
