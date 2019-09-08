@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -89,11 +90,13 @@ public class SimpleCacheTemplate implements CacheTemplate<Person> {
                     .flatMapMany(Flux::fromIterable);
         }
         else{
-            //TODO:어떻게 구현하면 좋을까?
+            //TODO:어떻게 개선하면 좋을까?
+            return Flux.fromIterable(keyList.stream()
+                    .map(this::get)
+                    .map(Mono::block)
+                    .collect(Collectors.toList()));
 
         }
-
-        return null;
     }
 
     @Override
