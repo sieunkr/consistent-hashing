@@ -70,7 +70,10 @@ public class SimpleCacheTemplate implements CacheTemplate<Person> {
     @Override
     public Flux<Person> mGet(List<String> keyList) {
 
-        Assert.notEmpty(keyList, "key must not be empty.");
+        Assert.notEmpty(keyList, "keyList must not be empty.");
+
+
+
 
         return null;
     }
@@ -92,7 +95,14 @@ public class SimpleCacheTemplate implements CacheTemplate<Person> {
         return Mono.empty();
     }
 
+    @Override
+    public Boolean isSameSlot(List<String> keyList) {
 
+        return 1 == keyList.stream()
+                .map(this::getNode)
+                .collect(Collectors.toList())
+                .size();
+    }
 
     public int getBucket(String key){
         return getBucketByHashCode(key);
@@ -110,7 +120,7 @@ public class SimpleCacheTemplate implements CacheTemplate<Person> {
     }
 
     private int getBucketByHashCode(String s){
-        
+
         Assert.notNull(s, "string must not be null.");
 
         return Hashing.consistentHash(

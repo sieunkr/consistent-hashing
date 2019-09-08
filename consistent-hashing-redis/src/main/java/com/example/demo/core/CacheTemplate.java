@@ -17,4 +17,6 @@ public interface CacheTemplate<T> {
 
     //신규 데이터 저장
     Mono<Void> save(T o);
+
+    Boolean isSameSlot(List<String> keyList);
 }
