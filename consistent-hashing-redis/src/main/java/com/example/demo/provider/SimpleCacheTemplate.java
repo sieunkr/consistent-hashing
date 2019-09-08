@@ -68,12 +68,30 @@ public class SimpleCacheTemplate implements CacheTemplate<Person> {
     }
 
     @Override
+    public Map<String, String> getNodeMap(List<String> keyList) {
+
+        Map<String, String> m = new HashMap<>();
+
+        //TODO:split 중복 코드 개선
+        keyList.forEach(k -> m.put(k, getNode(k).split("-")[0]));
+
+        return m;
+    }
+
+    @Override
     public Flux<Person> mGet(List<String> keyList) {
 
         Assert.notEmpty(keyList, "keyList must not be empty.");
 
+        if(isSameSlot(keyList)){
+            return getRedisTemplate(keyList.get(0)).opsForValue()
+                    .multiGet(keyList)
+                    .flatMapMany(Flux::fromIterable);
+        }
+        else{
+            //TODO:어떻게 구현하면 좋을까?
 
-
+        }
 
         return null;
     }
@@ -97,11 +115,7 @@ public class SimpleCacheTemplate implements CacheTemplate<Person> {
 
     @Override
     public Boolean isSameSlot(List<String> keyList) {
-
-        return 1 == keyList.stream()
-                .map(this::getNode)
-                .collect(Collectors.toList())
-                .size();
+        return 1 == getNodeMap(keyList).values().stream().distinct().count();
     }
 
     public int getBucket(String key){
